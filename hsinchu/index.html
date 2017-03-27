@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <style>
+      html, body, #map {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      #selector_menu{
+              position: absolute;
+              top: 20px;
+              left: 40px;
+              z-index: 9000;
+            }
+    </style>
+    <!-- include cartodb css  -->
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
+    <!-- include cartodb.js library -->
+    <script src="http://libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>
+
+  </head>
+  <body>
+    <!--  define a map object-->
+    <div id="map"></div>
+    <div id='selector_menu'>
+        <select id='selector'>
+
+          <option value = 'torquecat'>Torque Category</option>
+        </select>
+
+    </div>  
+    
+    <script>
+
+      function main() {
+
+        //create map element
+        var map = new L.Map('map', {
+           zoomControl: true,
+           center: [24.8317611,121.0240116],
+           zoom: 13
+        });
+
+        // add map
+        L.tileLayer('http://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+          attribution: 'CartoDB'
+        }).addTo(map);
+
+        // cartocss style
+        var CARTOCSSTorque = [
+          'Map {',
+          '-torque-time-attribute: "cartodb_id";',
+          '-torque-aggregation-function: "count(cartodb_id)";',
+          '-torque-frame-count: 256;',
+          '-torque-animation-duration: 30;',
+          '-torque-resolution: 2',
+          '-torque-data-aggregation:linear;',
+          '}',
+          '#populated_places{',
+          '  marker-width: 3;',
+          '  marker-fill-opacity: 0.8;',
+          '  marker-fill: #FEE391; ',
+          '  comp-op: "lighten";',
+          '  [frame-offset = 1] { marker-width: 10; marker-fill-opacity: 0.05;}',
+          '  [frame-offset = 2] { marker-width: 15; marker-fill-opacity: 0.02;}',
+          '}'
+        ].join('\n');
+
+        var CARTOCSSHeatMap = [
+          'Map {',
+          '-torque-frame-count:256;',
+          '-torque-animation-duration:30;',
+          '-torque-time-attribute:"cartodb_id";',
+          '-torque-aggregation-function:"count(cartodb_id)";',
+          '-torque-resolution:8;',
+          '-torque-data-aggregation:linear;',
+          '}',
+          '#populated_places{',
+            'image-filters: colorize-alpha(blue, cyan, #008000, yellow , orange, red);',
+            'marker-file: url(http://s3.amazonaws.com/com.cartodb.assets.static/alphamarker.png);',
+            'marker-fill-opacity: 0.4*[value];',
+            'marker-width: 35;',
+          '}'
+        ].join('\n');
+
+        var CARTOCSSTorqueCat = [
+          'Map {',
+          
+          '-torque-time-attribute:"datet";',
+		  '-torque-aggregation-function:"avg(id)"',
+          '-torque-frame-count: 256;',
+          '-torque-animation-duration: 10;',
+          '-torque-resolution: 20',
+          '-torque-data-aggregation:cumulative;',
+          '}',
+
+'#hsinchu{ comp-op: source-over; marker-fill-opacity: 0.9; marker-line-color: #FFF; marker-line-width: 0; marker-line-opacity: 1; marker-type: ellipse; marker-width: 1; marker-fill: #0F3B82; } ',
+'#hsinchu[frame-offset=1] { marker-width:3; marker-fill-opacity:0.45; }',' #hsinchu[frame-offset=2] { marker-width:5; marker-fill-opacity:0.225; } ',
+/*
+'#hsinchu[value=1] { marker-fill: #A6CEE3; } #hsinchu[value=2] { marker-fill: #1F78B4; } ',
+'#hsinchu[value=3] { marker-fill: #B2DF8A; } #hsinchu[value=4] { marker-fill: #33A02C; } ',
+'#hsinchu[value=5] { marker-fill: #FB9A99; } #hsinchu[value=6] { marker-fill: #E31A1C; } ',
+'#hsinchu[value=7] { marker-fill: #FDBF6F; } #hsinchu[value=8] { marker-fill: #FF7F00; } ',
+'#hsinchu[value=9] { marker-fill: #CAB2D6; } #hsinchu[value=10] { marker-fill: #6A3D9A;} ',*/
+'#hsinchu {',' marker-fill: #1F78B4; }'
+
+        ].join('\n');
+
+        // initialize a torque layer that uses the CartoDB account details and SQL API to pull in data
+        var layerSource = {
+          type: 'torque',
+          options: {
+            query: "SELECT * FROM hsinchu", 
+            user_name: 'marsli',
+            cartocss:  CARTOCSSTorqueCat,
+            loop: true // stop loop of the animation
+          }
+        }
+        
+        cartodb.createLayer(map, layerSource)
+          .addTo(map)
+          .done(function(layer){
+            var torqueLayer = layer;
+            torqueLayer.stop(); // everytime that the map is reloaded, the torque layer is stop, the animation won't start
+                                // unless you click the "play" button.
+            torqueLayer.getStep(0); // everytime that the map is reloaded, it restarts the animation
+
+
+            var LayerActions = {
+                        torque: function(){
+                          torqueLayer.setCartoCSS(CARTOCSSTorque);
+                          torqueLayer.getStep(0); // it restarts the animation
+                          torqueLayer.stop(); //  the torque layer is stop, the animation won't start unless you click the "play" button.
+                                              
+                          
+                        },
+                        heatmap: function(){
+                          torqueLayer.setCartoCSS(CARTOCSSHeatMap);
+                          torqueLayer.getStep(0); //  it restarts the animation
+                          torqueLayer.stop(); // the torque layer is stop, the animation won't start unless you click the "play" button.
+                                              
+                          
+                          return true;
+                        },
+                        torquecat: function(){
+                          torqueLayer.setCartoCSS(CARTOCSSTorqueCat);
+                          torqueLayer.getStep(0); //  it restarts the animation
+                          torqueLayer.stop(); // the torque layer is stop, the animation won't start unless you click the "play" button.
+                                              
+                          
+                          return true;
+                        }
+                      }
+
+                    $('#selector').change(function() {
+                       LayerActions[$(this).val()]();
+                    }); 
+            
+          });
+      }
+      window.onload = main;
+    </script>
+</body>
+</html>  
