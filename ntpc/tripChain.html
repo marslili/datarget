@@ -21,13 +21,38 @@
       var map;
       function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 2,
+          zoom: 13,
           center: new google.maps.LatLng(25.0357593,121.5463586),
           mapTypeId: 'terrain'
         });
+		
+		        // Load GeoJSON.
+        map.data.loadGeoJson('https://marslili.github.io/datarget/ntpc/line.json');
+		var lineSymbol = {
+          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
+        };
+
+		map.data.setStyle(function(feature) {
+		
+          var color = '#3E47EB';
+		  var width=10;
+		  var transfer_count=0;
+          if (feature.getProperty('transfer_count')) {
+            transfer_count = feature.getProperty('transfer_count');
+			width=transfer_count/20;
+          }
+          return /** @type {google.maps.Data.StyleOptions} */({
+            fillColor: color,
+            strokeColor: color,
+            strokeWeight: width,
+			icon:  symbolOne
+			 
+          });
+        });
+
       }
 
-	map.data.loadGeoJson('https://storage.googleapis.com/mapsdevsite/json/google.json');
+	
     </script>
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrPV8XZA8_INsW2NicR-2_wxNHW9S4v48&callback=initMap">
