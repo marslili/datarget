@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <style>
+<head>
+  <style>
       /* Always set the map height explicitly to define the size of the div
-       * element that contains the map. */
+      * element that contains the map. */
       #map {
         height: 100%;
       }
@@ -25,37 +25,108 @@
           center: new google.maps.LatLng(25.0357593,121.5463586),
           mapTypeId: 'terrain'
         });
-		
-		        // Load GeoJSON.
-        map.data.loadGeoJson('https://marslili.github.io/datarget/ntpc/line.json');
-		var lineSymbol = {
-          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
-        };
-
-		map.data.setStyle(function(feature) {
-		
-          var color = '#3E47EB';
-		  var width=10;
-		  var transfer_count=0;
-          if (feature.getProperty('transfer_count')) {
-            transfer_count = feature.getProperty('transfer_count');
-			width=transfer_count/20;
-          }
-          return /** @type {google.maps.Data.StyleOptions} */({
-            fillColor: color,
-            strokeColor: color,
-            strokeWeight: width,
-			icon:  symbolOne
-			 
-          });
-        });
-
       }
 
-	
+
     </script>
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrPV8XZA8_INsW2NicR-2_wxNHW9S4v48&callback=initMap">
-    </script>
-  </body>
+  </script>
+  <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+  
+  <script>
+    $.ajax({
+      url: "./tripChain.json",
+  dataType: 'json',  //data type±ØíšÔO¶¨³É 'jsonp'
+  crossDomain: true,
+  success: callback,
+  error: callback
+});
+    var aaa;
+
+    var red = {
+      r: 215,
+      g: 24,
+      b: 26
+    };
+
+    var green = {
+      r: 252,
+      g: 224,
+      b: 161
+    };
+
+
+    function callback(data){
+      aaa=data;
+
+      var length=data.RECORDS.length;
+      for(var i =0;i<data.RECORDS.length;i++){
+        var startlat=parseFloat(data.RECORDS[i].startlat);
+        var startlng=parseFloat(data.RECORDS[i].startlng);
+        var endlat=parseFloat(data.RECORDS[i].endlat);
+        var endlng=parseFloat(data.RECORDS[i].endlng);
+        var transferCount=data.RECORDS[i].transfer_count;
+        
+        var percent = parseInt((i / length) * 100);
+
+        var color=makeGradientColor(green,red,percent)
+        //console.log(percent);
+        //console.log(color);
+        var width=transferCount/15;          
+
+        var lineSymbol = {
+          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+          strokeColor:color.cssColor,
+          //fillColor:"#CA005B",
+          //strokeWeight:transferCount/10,
+          scale: width
+
+        };
+
+        var line = new google.maps.Polyline({
+          path: [{lat: startlat, lng: startlng}, {lat: endlat, lng: endlng}],
+          /*icons: [{
+            icon: lineSymbol,
+            offset: '100%'
+          }],*/
+          strokeColor: color.cssColor,
+          strokeOpacity: 1.0,
+          strokeWeight: width,
+          map: map
+        });
+
+      }
+    }
+
+    function makeGradientColor(color1, color2, percent) {
+      var newColor = {};
+
+      function makeChannel(a, b) {
+        return (a + Math.round((b - a) * (percent / 100)));
+      }
+
+      function makeColorPiece(num) {
+      num = Math.min(num, 255); // not more than 255
+      num = Math.max(num, 0); // not less than 0
+      var str = num.toString(16);
+      if (str.length < 2) {
+        str = "0" + str;
+      }
+      return (str);
+    }
+
+    newColor.r = makeChannel(color1.r, color2.r);
+    newColor.g = makeChannel(color1.g, color2.g);
+    newColor.b = makeChannel(color1.b, color2.b);
+    newColor.cssColor = "#" + makeColorPiece(newColor.r)
+    + makeColorPiece(newColor.g) + makeColorPiece(newColor.b);
+    return (newColor);
+  }
+
+</script>
+</body>
 </html>
