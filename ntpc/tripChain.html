@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
   <style>
       /* Always set the map height explicitly to define the size of the div
       * element that contains the map. */
@@ -27,6 +31,14 @@
           styles:[{"featureType":"administrative","elementType":"all","stylers":[{"saturation":"-100"}]},{"featureType":"administrative.province","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"landscape","elementType":"all","stylers":[{"saturation":-100},{"lightness":65},{"visibility":"on"}]},{"featureType":"poi","elementType":"all","stylers":[{"saturation":-100},{"lightness":"50"},{"visibility":"simplified"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":"-100"}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"all","stylers":[{"lightness":"30"}]},{"featureType":"road.local","elementType":"all","stylers":[{"lightness":"40"}]},{"featureType":"transit","elementType":"all","stylers":[{"saturation":-100},{"visibility":"simplified"}]},{"featureType":"water","elementType":"geometry","stylers":[{"hue":"#ffff00"},{"lightness":-25},{"saturation":-97}]},{"featureType":"water","elementType":"labels","stylers":[{"lightness":-25},{"saturation":-100}]}]
           //mapTypeId: 'terrain'
         });
+
+            $.ajax({
+      url: "./tripChain.json",
+  dataType: 'json',  //data type必須設定成 'jsonp'
+  crossDomain: true,
+  success: callback,
+  error: callback
+});
       }
 
 
@@ -34,19 +46,10 @@
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrPV8XZA8_INsW2NicR-2_wxNHW9S4v48&callback=initMap">
   </script>
-  <script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
+
   
   <script>
-    $.ajax({
-      url: "./tripChain.json",
-  dataType: 'json',  //data type必須設定成 'jsonp'
-  crossDomain: true,
-  success: callback,
-  error: callback
-});
+
     var aaa;
 
     var red = {
